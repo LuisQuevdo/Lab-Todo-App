@@ -1,0 +1,51 @@
+services:
+  # Base de Datos PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: todo_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: todo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  # Backend (API REST Node.js)
+  backend:
+    build:
+      context: ./backend
+    container_name: todo_backend # Nombre del contenedor para fácil referencia
+    ports:
+      - "3000:3000"
+    environment: 
+      DB_HOST: db # Nombre del servicio de la DB en la red Docker
+      DB_USER: user
+      DB_PASSWORD: password
+      DB_NAME: todo_db
+      DB_PORT: 5432
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Frontend (Nginx)
+  frontend:
+    build:
+      context: ./frontend
+    container_name: todo_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+# Declaración de Volúmenes
+volumes:
+  db_data:
