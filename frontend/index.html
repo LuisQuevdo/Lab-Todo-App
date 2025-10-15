@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO App Dockerizada</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Gestión de Tareas</h1>
+
+        <form id="task-form">
+            <input type="text" id="task-input" placeholder="Escribe una nueva tarea..." required>
+            <button type="submit">Agregar Tarea</button>
+        </form>
+
+        <ul id="task-list">
+            </ul>
+    </div>
+
+    <script>
+        // La URL de la API debe coincidir con el puerto expuesto del backend
+        // En un entorno dockerizado, esto sería el nombre del servicio (backend:3000), 
+        // pero como el navegador lo consume, usamos el puerto expuesto de la máquina host.
+        const API_URL = 'http://localhost:3000/tasks';
+
+        const taskList = document.getElementById('task-list');
+        const taskForm = document.getElementById('task-form');
+        const taskInput = document.getElementById('task-input');
+
+        // Función para obtener y mostrar todas las tareas
+        async function fetchTasks() {
+            try {
+                const response = await fetch(API_URL);
+                const tasks = await response.json();
+                
+                taskList.innerHTML = ''; // Limpia la lista antes de dibujar
+                
+                tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span>${task.title}</span>
+                        <button onclick="deleteTask(${task.id})">Eliminar</button>
+                    `;
+                    taskList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error al cargar las tareas:', error);
+                taskList.innerHTML = '<li>Error al conectar con el Backend. Revise los logs de Docker Compose.</li>';
+            }
+        }
+
+        // Función para agregar una nueva tarea
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = taskInput.value.trim();
+            if (!title) return;
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: title })
+                });
+                taskInput.value = ''; // Limpia el input
+                fetchTasks(); // Vuelve a cargar la lista
+            } catch (error) {
+                console.error('Error al agregar tarea:', error);
+            }
+        });
+
+        // Función para eliminar una tarea
+        async function deleteTask(id) {
+            try {
+                await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+                fetchTasks(); // Vuelve a cargar la lista
+            } catch (error) {
+                console.error('Error al eliminar tarea:', error);
+            }
+        }
+        
+        // Cargar las tareas al iniciar
+        fetchTasks();
+    </script>
+</body>
+</html>
