@@ -8,82 +8,107 @@
 </head>
 <body>
     <div class="container">
-        <h1>Sistema de Gestión de Tareas</h1>
+        <h1>Gestión de Tareas (TODO App)</h1>
 
         <form id="task-form">
-            <input type="text" id="task-input" placeholder="Escribe una nueva tarea..." required>
+            <input type="text" id="task-input" placeholder="Escribe una nueva tarea aquí..." required>
             <button type="submit">Agregar Tarea</button>
         </form>
 
         <ul id="task-list">
-            </ul>
+        </ul>
     </div>
 
     <script>
-        // La URL de la API debe coincidir con el puerto expuesto del backend
-        // En un entorno dockerizado, esto sería el nombre del servicio (backend:3000), 
-        // pero como el navegador lo consume, usamos el puerto expuesto de la máquina host.
-        const API_URL = 'http://localhost:3000/tasks';
-
+        const API_BASE_URL = 'http://localhost:3000/tasks';
+        
         const taskList = document.getElementById('task-list');
         const taskForm = document.getElementById('task-form');
         const taskInput = document.getElementById('task-input');
 
-        // Función para obtener y mostrar todas las tareas
-        async function fetchTasks() {
+        function renderTask(task) {
+            const li = document.createElement('li');
+            li.setAttribute('data-id', task.id);
+            if (task.completed) {
+                li.classList.add('completed');
+            }
+
+            li.addEventListener('click', () => toggleTask(task.id, !task.completed));
+
+            li.innerHTML = `
+                <span>${task.title}</span>
+                <button class="delete-btn" onclick="event.stopPropagation(); deleteTask(${task.id})">
+                    Eliminar
+                </button>
+            `;
+            taskList.appendChild(li);
+        }
+
+        async function loadTasks() {
             try {
-                const response = await fetch(API_URL);
+                const response = await fetch(API_BASE_URL);
+                if (!response.ok) throw new Error('Error de conexión con el API.');
+
                 const tasks = await response.json();
+                taskList.innerHTML = '';
                 
-                taskList.innerHTML = ''; // Limpia la lista antes de dibujar
-                
-                tasks.forEach(task => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `
-                        <span>${task.title}</span>
-                        <button onclick="deleteTask(${task.id})">Eliminar</button>
-                    `;
-                    taskList.appendChild(li);
-                });
+                tasks.forEach(renderTask);
             } catch (error) {
                 console.error('Error al cargar las tareas:', error);
-                taskList.innerHTML = '<li>Error al conectar con el Backend. Revise los logs de Docker Compose.</li>';
+                taskList.innerHTML = '<li class="error-msg">No se pudo conectar con el backend (http://localhost:3000).</li>';
             }
         }
 
-        // Función para agregar una nueva tarea
         taskForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = taskInput.value.trim();
             if (!title) return;
 
             try {
-                await fetch(API_URL, {
+                const response = await fetch(API_BASE_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title: title })
                 });
-                taskInput.value = ''; // Limpia el input
-                fetchTasks(); // Vuelve a cargar la lista
+                if (!response.ok) throw new Error('Fallo al crear la tarea.');
+
+                taskInput.value = ''; 
+                loadTasks();
             } catch (error) {
                 console.error('Error al agregar tarea:', error);
             }
         });
 
-        // Función para eliminar una tarea
-        async function deleteTask(id) {
+        async function toggleTask(id, completed) {
             try {
-                await fetch(`${API_URL}/${id}`, {
+                const response = await fetch(`${API_BASE_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ completed: completed })
+                });
+                if (!response.ok) throw new Error('Fallo al actualizar el estado.');
+                
+                loadTasks();
+            } catch (error) {
+                console.error('Error al cambiar el estado:', error);
+            }
+        }
+
+        async function deleteTask(id) {
+            if (!confirm('¿Estás seguro de que quieres eliminar esta tarea?')) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/${id}`, {
                     method: 'DELETE'
                 });
-                fetchTasks(); // Vuelve a cargar la lista
+                if (!response.ok) throw new Error('Fallo al eliminar la tarea.');
+
+                loadTasks();
             } catch (error) {
                 console.error('Error al eliminar tarea:', error);
             }
         }
         
-        // Cargar las tareas al iniciar
-        fetchTasks();
+        loadTasks();
     </script>
 </body>
 </html>
