@@ -6,7 +6,7 @@ Permite crear, listar, completar y eliminar tareas, utilizando un backend en **N
 
 
 
-##Arquitectura
+## Arquitectura
 
 La aplicación está compuesta por tres servicios orquestados mediante **Docker Compose**:
 
@@ -32,7 +32,7 @@ La aplicación está compuesta por tres servicios orquestados mediante **Docker 
 │ • Tabla: tasks                           │
 └──────────────────────────────────────────┘
 
- ##Tecnologías
+ ## Tecnologías
 
 - **Backend:** Node.js + Express + PostgreSQL  
 - **Frontend:** HTML + CSS + JavaScript + Nginx  
@@ -41,7 +41,7 @@ La aplicación está compuesta por tres servicios orquestados mediante **Docker 
 
 ---
 
-##Requisitos Previos
+## Requisitos Previos
 
 Antes de ejecutar el proyecto, asegúrate de tener instalado:
 
@@ -51,7 +51,7 @@ Antes de ejecutar el proyecto, asegúrate de tener instalado:
 
 ---
 
-##Instalación y Ejecución
+## Instalación y Ejecución
 
 1. Clonar el repositorio
 
