@@ -73,7 +73,7 @@ todo_backend → API Node.js
 todo_frontend → Servidor Nginx
 ```
 3. Acceder a la aplicación
-4. 
+
 Frontend: http://localhost:8080  
 Backend (API): http://localhost:3000/tasks
 
@@ -85,6 +85,7 @@ docker compose down	Detiene y elimina los contenedores
 docker compose logs -f	Muestra los logs del backend en tiempo real
 docker compose ps	Lista los servicios activos
 ```
+---
 
 Estructura del Proyecto
 ```bash
@@ -107,7 +108,8 @@ todo-app/
 ├── docker-compose.yml
 └── README.md
 ```
-API Endpoints
+---
+## API Endpoints
 ```bash
 Método	Endpoint	Descripción
 GET	/tasks	Obtiene todas las tareas
@@ -125,15 +127,22 @@ Ejemplo de Objeto JSON
   "created_at": "2025-10-15T22:00:00Z"
 }
 ```
-Autores
+---
+
+## Autores
+
 Estudiante 1: Luis Fernando Quevedo Vanegas
 
 Estudiante 2: Miguel Angel Molina Cruz
 
-Fecha de Entrega
+---
+
+## Fecha de Entrega
 15 de octubre de 2025
 
-Notas
+---
+
+## Notas
 La app está completamente dockerizada.
 
 Cada servicio se ejecuta de forma independiente pero conectada en la red interna de Docker.
