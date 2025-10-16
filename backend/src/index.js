@@ -69,20 +69,27 @@ app.post('/tasks', async (req, res) => {
 // PUT /tasks/:id: Actualiza el estado de una tarea
 app.put('/tasks/:id', async (req, res) => {
     const { id } = req.params;
-    const { completed } = req.body; 
-
-    // Solo se espera el campo 'completed' para este laboratorio
-    if (typeof completed !== 'boolean') {
-        return res.status(400).json({ error: 'El campo "completed" es requerido y debe ser booleano' });
-    }
+    const { title, completed } = req.body;
 
     try {
-        const query = 'UPDATE tasks SET completed = $1 WHERE id = $2 RETURNING *';
-        const result = await pool.query(query, [completed, id]);
-        
+        let query, values;
+
+        if (title !== undefined) {
+            query = 'UPDATE tasks SET title = $1 WHERE id = $2 RETURNING *';
+            values = [title, id];
+        } else if (completed !== undefined) {
+            query = 'UPDATE tasks SET completed = $1 WHERE id = $2 RETURNING *';
+            values = [completed, id];
+        } else {
+            return res.status(400).json({ error: 'Debe enviar un campo válido (title o completed)' });
+        }
+
+        const result = await pool.query(query, values);
+
         if (result.rowCount === 0) {
             return res.status(404).send('Tarea no encontrada');
         }
+
         res.status(200).json(result.rows[0]);
     } catch (err) {
         console.error(err);
